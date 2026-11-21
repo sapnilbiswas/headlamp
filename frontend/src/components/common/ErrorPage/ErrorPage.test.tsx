@@ -220,4 +220,20 @@ describe('ErrorComponent', () => {
     expect(issueUrl.searchParams.get('title')).toBe('Crash Report: Product failed');
     expect(issueUrl.searchParams.get('body')).toContain('Product stack');
   });
+
+  it('opens the issue reporting URL with noopener and noreferrer', async () => {
+    const user = userEvent.setup();
+    const open = vi.spyOn(window, 'open').mockReturnValue(window);
+    const error = new Error('Security test error');
+
+    render(<ErrorComponent error={error} />);
+    await user.click(screen.getByRole('button', { name: /Error Details$/ }));
+    await user.click(screen.getByRole('button', { name: /Open Issue on GitHub$/ }));
+
+    expect(open).toHaveBeenCalledWith(
+      expect.stringContaining('https://github.com/kubernetes-sigs/headlamp/issues/new'),
+      '_blank',
+      'noopener,noreferrer'
+    );
+  });
 });
